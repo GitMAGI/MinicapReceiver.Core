@@ -1,9 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using Serilog.Core;
-using Serilog;
-using Serilog.Formatting.Display;
-using Serilog.Sinks.SystemConsole.Themes;
 
 namespace CA_Main
 {
@@ -13,12 +9,7 @@ namespace CA_Main
 
         static void Main(string[] args)
         {
-            Logger logger = new LoggerConfiguration()
-                .Enrich.FromLogContext()
-                .Enrich.WithThreadId()
-                .MinimumLevel.Debug()
-                .WriteTo.Console(outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} | {Level} | {ThreadId} | {Method} >>>> {Message}{NewLine}{Exception}", theme: AnsiConsoleTheme.Code)
-                .CreateLogger();
+            Serilog.Core.Logger logger = Logger.GetInstance();
 
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
