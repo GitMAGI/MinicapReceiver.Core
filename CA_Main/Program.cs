@@ -18,7 +18,7 @@ namespace CA_Main
             {                
                 logger.Information(string.Format("Starting Application {0} ...", appName));
 
-                Console.WriteLine("Hello World!");
+                throw new ArgumentException("Errori di test Dajeeeee!");
             }
             catch(Exception ex)
             {
