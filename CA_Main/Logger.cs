@@ -25,7 +25,7 @@ namespace CA_Main
                 .Enrich.FromLogContext()
                 .Enrich.WithMachineName()
                 .Enrich.WithThreadId()
-                .Enrich.WithScope()
+                //.Enrich.WithScope()
                 .WriteTo.Console(outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.ffffff} | {Level:u} | {MachineName} | {ThreadId} | {Scope} >>> {Message}{NewLine}{Exception}", theme: AnsiConsoleTheme.Code)
                 .CreateLogger();
         }
@@ -34,7 +34,7 @@ namespace CA_Main
         {
             if (_instance == null)
                 Initialize();
-            return _instance;
+            return (Serilog.Core.Logger) _instance.ForContext(new ScopeEnricher());
         }
     }
 
@@ -71,28 +71,7 @@ namespace CA_Main
             return propertyFactory.CreateProperty(PropertyName, value);
         }
     }
-
-    public static class LoggingExtensions
-    {
-        public static LoggerConfiguration WithReleaseNumber(
-            this LoggerEnrichmentConfiguration enrich)
-        {
-            if (enrich == null)
-                throw new ArgumentNullException(nameof(enrich));
-
-            return enrich.With<ReleaseNumberEnricher>();
-        }
-
-        public static LoggerConfiguration WithScope(
-            this LoggerEnrichmentConfiguration enrich)
-        {
-            if (enrich == null)
-                throw new ArgumentNullException(nameof(enrich));
-
-            return enrich.With<ScopeEnricher>();
-        }
-    }
-
+   
     public class ScopeEnricher : ILogEventEnricher
     {
         LogEventProperty _cachedProperty;
@@ -122,7 +101,9 @@ namespace CA_Main
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static LogEventProperty CreateProperty(ILogEventPropertyFactory propertyFactory)
         {
-            int stackLevel = 7;
+            //StackTrace stackTrace = new StackTrace();
+            //int stackLevel = stackTrace.FrameCount - 1;
+            int stackLevel = 6;
 
             StackFrame frame = new StackFrame(stackLevel);
             MethodBase method = frame.GetMethod();
@@ -136,7 +117,25 @@ namespace CA_Main
         }
     }
 
+    public static class LoggingExtensions
+    {
+        public static LoggerConfiguration WithReleaseNumber(this LoggerEnrichmentConfiguration enrich)
+        {
+            if (enrich == null)
+                throw new ArgumentNullException(nameof(enrich));
 
+            return enrich.With<ReleaseNumberEnricher>();
+        }
+
+        public static LoggerConfiguration WithScope(this LoggerEnrichmentConfiguration enrich)
+        {
+            if (enrich == null)
+                throw new ArgumentNullException(nameof(enrich));
+
+            return enrich.With<ScopeEnricher>();
+        }
+    }
+    
     // Example of configuration with appsetting.json
     //{
     //  "Serilog": 
@@ -155,5 +154,4 @@ namespace CA_Main
     //      "Enrich": [ "FromLogContext", "WithReleaseNumber", "WithScope" ]
     //  }
     //}
-
 }

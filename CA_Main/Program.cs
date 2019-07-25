@@ -17,8 +17,11 @@ namespace CA_Main
             try
             {                
                 logger.Information(string.Format("Starting Application {0} ...", appName));
+                                
+                TestTestTest.InnerTest00();
+                (new ClassTest02()).Method01();
 
-                throw new ArgumentException("Errori di test Dajeeeee!");
+                ActionTest.Test00();
             }
             catch(Exception ex)
             {
