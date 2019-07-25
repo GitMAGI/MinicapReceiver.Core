@@ -31,7 +31,7 @@ namespace CA_Main
             RemoteIP = "127.0.0.1";
             RemotePort = 1717;
 
-            ScalingFactor = 0.25;
+            ScalingFactor = 0.4;
         }
 
         public void Start()
@@ -40,7 +40,7 @@ namespace CA_Main
             stopwatch.Start();
             try
             {
-                _logger.Information(string.Format("Starting  ..."));
+                _logger.Information(string.Format("Main Action Starting  ..."));
 
                 IPAddress remoteAddr = IPAddress.Parse(RemoteIP);
                 IPEndPoint remoteEndPoint = new IPEndPoint(remoteAddr, RemotePort);
@@ -91,7 +91,7 @@ namespace CA_Main
                 }                
 
                 stopwatch.Stop();
-                _logger.Information(string.Format("Completed in {0}", Utils.ElapsedTime(stopwatch.Elapsed)));
+                _logger.Information(string.Format("Main Action Completed in {0}", Utils.ElapsedTime(stopwatch.Elapsed)));
             }
         }
     }
