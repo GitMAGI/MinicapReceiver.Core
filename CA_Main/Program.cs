@@ -17,11 +17,9 @@ namespace CA_Main
             try
             {                
                 logger.Information(string.Format("Starting Application {0} ...", appName));
-                                
-                TestTestTest.InnerTest00();
-                (new ClassTest02()).Method01();
 
-                ActionTest.Test00();
+                MainActivity main = new MainActivity();
+                main.Start();
             }
             catch(Exception ex)
             {
