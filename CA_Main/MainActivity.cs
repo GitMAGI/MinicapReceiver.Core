@@ -76,6 +76,18 @@ namespace CA_Main
                 _logger.Information("Shutting down TCP socket {0}:{1} ..", RemoteIP, RemotePort);
                 _socket.Shutdown(SocketShutdown.Both);
                 _logger.Information("Socket shutted down");
+
+
+                //Thread for retrieving data from TCP 
+
+                //Thread for Processing
+
+                //Thread for Displaying frames
+
+                //Thread for Monitoring queues status
+
+                //Loop Main Activity until Keyboard Interrupt is got
+
             }
             catch (Exception)
             {
