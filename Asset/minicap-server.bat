@@ -1,14 +1,19 @@
+@echo off
+
+::SET device = 07ea9707 ::Samsung S5
+SET device = 743580a0 ::OnePlus3T
+
 ::C:\android-sdk\tools\android-ndk-r14b\
-::C:\android-sdk\platform-tools\adb.exe -s 07ea9707
+::C:\android-sdk\platform-tools\adb.exe -s "%device%"
 
 ::To Restart The Device
 ::\android-sdk\platform-tools\adb.exe shell am broadcast -a android.intent.action.BOOT_COMPLETED
 
-C:\android-sdk\platform-tools\adb.exe -s 07ea9707 forward tcp:1717 localabstract:minicap
+C:\android-sdk\platform-tools\adb.exe -s "%device%" forward tcp:1717 localabstract:minicap
 
-C:\android-sdk\platform-tools\adb.exe -s 07ea9707 push "libs/armeabi-v7a/minicap" "/data/local/tmp/"
-C:\android-sdk\platform-tools\adb.exe -s 07ea9707 push "jni/minicap-shared/aosp/libs/android-23/armeabi-v7a/minicap.so" "/data/local/tmp/"
-C:\android-sdk\platform-tools\adb.exe -s 07ea9707 shell chmod 777 /data/local/tmp/minicap
+C:\android-sdk\platform-tools\adb.exe -s "%device%" push "libs/armeabi-v7a/minicap" "/data/local/tmp/"
+C:\android-sdk\platform-tools\adb.exe -s "%device%" push "jni/minicap-shared/aosp/libs/android-23/armeabi-v7a/minicap.so" "/data/local/tmp/"
+C:\android-sdk\platform-tools\adb.exe -s "%device%" shell chmod 777 /data/local/tmp/minicap
 
 ::Other Minicap Server Options
 :: -d <id>:         Display ID
@@ -23,26 +28,27 @@ C:\android-sdk\platform-tools\adb.exe -s 07ea9707 shell chmod 777 /data/local/tm
 
 ::To Get Help
 :: real_with x real_height @ virtual_with x virtual_height / display_orientation_degrees
-::C:\android-sdk\platform-tools\adb.exe -s 07ea9707 shell LD_LIBRARY_PATH=/data/local/tmp /data/local/tmp/minicap -h
+::C:\android-sdk\platform-tools\adb.exe -s "%device%" shell LD_LIBRARY_PATH=/data/local/tmp /data/local/tmp/minicap -h
+
 
 ::To Test Resolution
 :: real_with x real_height @ virtual_with x virtual_height / display_orientation_degrees
-::C:\android-sdk\platform-tools\adb.exe -s 07ea9707 shell LD_LIBRARY_PATH=/data/local/tmp /data/local/tmp/minicap -P 1080x1920@1080x1920/0 -t
+::C:\android-sdk\platform-tools\adb.exe -s "%device%" shell LD_LIBRARY_PATH=/data/local/tmp /data/local/tmp/minicap -P 1080x1920@1080x1920/0 -t
 
 ::PORTRAIT
 :: real_with x real_height @ virtual_with x virtual_height / display_orientation_degrees
-::C:\android-sdk\platform-tools\adb.exe -s 07ea9707 shell LD_LIBRARY_PATH=/data/local/tmp /data/local/tmp/minicap -P 1080x1920@270x480/0
+::C:\android-sdk\platform-tools\adb.exe -s "%device%" shell LD_LIBRARY_PATH=/data/local/tmp /data/local/tmp/minicap -P 1080x1920@270x480/0
 
 ::LANDSCAPE
 :: real_with x real_height @ virtual_with x virtual_height / display_orientation_degrees
-::C:\android-sdk\platform-tools\adb.exe -s 07ea9707 shell LD_LIBRARY_PATH=/data/local/tmp /data/local/tmp/minicap -P 1920x1080@480x270/0
+::C:\android-sdk\platform-tools\adb.exe -s "%device%" shell LD_LIBRARY_PATH=/data/local/tmp /data/local/tmp/minicap -P 1920x1080@480x270/0
 
 ::PORTRAIT with Quality Manually set and Performance Options
 :: real_with x real_height @ virtual_with x virtual_height / display_orientation_degrees
-::C:\android-sdk\platform-tools\adb.exe -s 07ea9707 shell LD_LIBRARY_PATH=/data/local/tmp /data/local/tmp/minicap -P 1080x1920@270x480/0 -Q 60 -S
+::C:\android-sdk\platform-tools\adb.exe -s "%device%" shell LD_LIBRARY_PATH=/data/local/tmp /data/local/tmp/minicap -P 1080x1920@270x480/0 -Q 60 -S
 
 ::LANDSCAPET with Quality Manually set and Performance Options
 :: real_with x real_height @ virtual_with x virtual_height / display_orientation_degrees
-C:\android-sdk\platform-tools\adb.exe -s 07ea9707 shell LD_LIBRARY_PATH=/data/local/tmp /data/local/tmp/minicap -P 1920x1080@480x270/0 -Q 60 -S
+C:\android-sdk\platform-tools\adb.exe -s "%device%" shell LD_LIBRARY_PATH=/data/local/tmp /data/local/tmp/minicap -P 1920x1080@480x270/0 -Q 60 -S
 
-C:\android-sdk\platform-tools\adb.exe -s 07ea9707 forward --remove tcp:1717
+C:\android-sdk\platform-tools\adb.exe -s "%device%" forward --remove tcp:1717
