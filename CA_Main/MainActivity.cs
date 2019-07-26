@@ -32,6 +32,11 @@ namespace CA_Main
         
         public int MainLoopTimeSleeping { get; private set; }
 
+        private RetrievingActivity _retriever = null;
+        private ProcessingActivity _processor = null;
+        private DisplayingActivity _displayer = null;
+        private MonitoringActivity _monitoring = null;
+
         public MainActivity()
         {
             RemoteIP = "127.0.0.1";
@@ -42,31 +47,31 @@ namespace CA_Main
             MainLoopTimeSleeping = 1;
         }
 
+        public void Stop()
+        {
+            _keepRunning = false;
+        }
+
         public void Run()
         {
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
 
-            RetrievingActivity retriever = null;
-            ProcessingActivity processor = null;
-            DisplayingActivity displayer = null;
-            MonitoringActivity monitoring = null;
-
             Task taskRetriever = new Task(() => {
-                retriever = new RetrievingActivity(null, 1);
-                retriever.Run();
+                _retriever = new RetrievingActivity(null, 1);
+                _retriever.Run();
             });
             Task taskProcessor = new Task(() => {
-                processor = new ProcessingActivity(null, null, 1);
-                processor.Run();
+                _processor = new ProcessingActivity(null, null, 1);
+                _processor.Run();
             });
             Task taskDisplayer = new Task(() => {
-                displayer = new DisplayingActivity(null, 1);
-                displayer.Run();
+                _displayer = new DisplayingActivity(null, 1);
+                _displayer.Run();
             });
             Task taskMonitoring = new Task(() => {
-                monitoring = new MonitoringActivity(null, null, 1);
-                monitoring.Run();
+                _monitoring = new MonitoringActivity(null, null, 1);
+                _monitoring.Run();
             });
 
             try
@@ -129,12 +134,26 @@ namespace CA_Main
             finally
             {
                 // Complete All Threads
-                retriever.Stop();
-                processor.Stop();
-                displayer.Stop();
-                monitoring.Stop();
-
-                Task.WaitAll(taskRetriever, taskProcessor, taskDisplayer, taskMonitoring);
+                if (taskRetriever.Status == TaskStatus.Running)
+                {
+                    _retriever.Stop();
+                    taskRetriever.Wait();
+                }
+                if (taskProcessor.Status == TaskStatus.Running)
+                {
+                    _processor.Stop();
+                    taskProcessor.Wait();
+                }
+                if (taskDisplayer.Status == TaskStatus.Running)
+                {
+                    _displayer.Stop();
+                    taskDisplayer.Wait();
+                }
+                if (taskMonitoring.Status == TaskStatus.Running)
+                {
+                    _monitoring.Stop();
+                    taskMonitoring.Wait();
+                }
 
                 if (_socket != null)
                 {
@@ -155,7 +174,11 @@ namespace CA_Main
         private void Console_CancelKeyPress(object sender, ConsoleCancelEventArgs e)
         {
             e.Cancel = true;
-            _keepRunning = false;
+            _retriever?.Stop();
+            _processor?.Stop();
+            _displayer?.Stop();
+            _monitoring?.Stop();
+            this.Stop();
             _logger.Information(string.Format("Cancelling Main Action Execution ..."));
         }
     }
