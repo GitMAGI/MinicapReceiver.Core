@@ -31,7 +31,6 @@ C:\android-sdk\platform-tools\adb.exe -s "%device%" shell chmod 777 /data/local/
 :: real_with x real_height @ virtual_with x virtual_height / display_orientation_degrees
 ::C:\android-sdk\platform-tools\adb.exe -s "%device%" shell LD_LIBRARY_PATH=/data/local/tmp /data/local/tmp/minicap -h
 
-
 ::To Test Resolution
 :: real_with x real_height @ virtual_with x virtual_height / display_orientation_degrees
 ::C:\android-sdk\platform-tools\adb.exe -s "%device%" shell LD_LIBRARY_PATH=/data/local/tmp /data/local/tmp/minicap -P 1080x1920@1080x1920/0 -t
