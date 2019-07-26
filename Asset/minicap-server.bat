@@ -1,7 +1,10 @@
 @echo off
 
-::SET device = 07ea9707 ::Samsung S5
-SET device = 743580a0 ::OnePlus3T
+::Samsung S5
+::SET device = 07ea9707 
+
+ ::OnePlus3T
+SET device = 743580a0
 
 ::C:\android-sdk\tools\android-ndk-r14b\
 ::C:\android-sdk\platform-tools\adb.exe -s "%device%"
@@ -12,8 +15,12 @@ SET device = 743580a0 ::OnePlus3T
 C:\android-sdk\platform-tools\adb.exe -s "%device%" forward tcp:1717 localabstract:minicap
 
 C:\android-sdk\platform-tools\adb.exe -s "%device%" push "libs/armeabi-v7a/minicap" "/data/local/tmp/"
-C:\android-sdk\platform-tools\adb.exe -s "%device%" push "jni/minicap-shared/aosp/libs/android-23/armeabi-v7a/minicap.so" "/data/local/tmp/" ::Samsung S5
-::C:\android-sdk\platform-tools\adb.exe -s "%device%" push "jni/minicap-shared/aosp/libs/android-28/armeabi-v7a/minicap.so" "/data/local/tmp/" ::OnePlus3T
+
+::Samsung S5
+::C:\android-sdk\platform-tools\adb.exe -s "%device%" push "jni/minicap-shared/aosp/libs/android-23/armeabi-v7a/minicap.so" "/data/local/tmp/"
+
+::OnePlus3T
+C:\android-sdk\platform-tools\adb.exe -s "%device%" push "jni/minicap-shared/aosp/libs/android-28/armeabi-v7a/minicap.so" "/data/local/tmp/"
 C:\android-sdk\platform-tools\adb.exe -s "%device%" shell chmod 777 /data/local/tmp/minicap
 
 ::Other Minicap Server Options
