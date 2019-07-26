@@ -4,6 +4,8 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace CA_Main
 {
@@ -26,18 +28,47 @@ namespace CA_Main
 
         public byte DisplayOrientation { get; private set; }
 
+        private bool _keepRunning;
+        
+        public int MainLoopTimeSleeping { get; private set; }
+
         public MainActivity()
         {
             RemoteIP = "127.0.0.1";
             RemotePort = 1717;
 
             ScalingFactor = 0.4;
+
+            MainLoopTimeSleeping = 1;
         }
 
-        public void Start()
+        public void Run()
         {
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
+
+            RetrievingActivity retriever = null;
+            ProcessingActivity processor = null;
+            DisplayingActivity displayer = null;
+            MonitoringActivity monitoring = null;
+
+            Task taskRetriever = new Task(() => {
+                retriever = new RetrievingActivity(null, 1);
+                retriever.Run();
+            });
+            Task taskProcessor = new Task(() => {
+                processor = new ProcessingActivity(null, null, 1);
+                processor.Run();
+            });
+            Task taskDisplayer = new Task(() => {
+                displayer = new DisplayingActivity(null, 1);
+                displayer.Run();
+            });
+            Task taskMonitoring = new Task(() => {
+                monitoring = new MonitoringActivity(null, null, 1);
+                monitoring.Run();
+            });
+
             try
             {
                 _logger.Information(string.Format("Main Action Starting  ..."));
@@ -73,21 +104,23 @@ namespace CA_Main
                 _logger.Information("Information from the Server: DisplayOrientation {0}", DisplayOrientation);
                 _logger.Information("Information from the Server: Quirk Flag {0}", quirkFlag);
 
-                _logger.Information("Shutting down TCP socket {0}:{1} ..", RemoteIP, RemotePort);
-                _socket.Shutdown(SocketShutdown.Both);
-                _logger.Information("Socket shutted down");
-
-
                 //Thread for retrieving data from TCP 
+                taskRetriever.Start();                
 
-                //Thread for Processing
+                //Thread for Processing 
+                taskProcessor.Start();
 
-                //Thread for Displaying frames
+                //Thread for Displaying frames 
+                taskDisplayer.Start();
 
-                //Thread for Monitoring queues status
+                //Thread for Monitoring queues status 
+                taskMonitoring.Start();
 
-                //Loop Main Activity until Keyboard Interrupt is got
-
+                //Loop Main Activity until Stop is set
+                _keepRunning = true;
+                Console.CancelKeyPress += new ConsoleCancelEventHandler(Console_CancelKeyPress);
+                while (_keepRunning)
+                    Thread.Sleep(MainLoopTimeSleeping);                
             }
             catch (Exception)
             {
@@ -95,8 +128,20 @@ namespace CA_Main
             }
             finally
             {
-                if(_socket != null)
+                // Complete All Threads
+                retriever.Stop();
+                processor.Stop();
+                displayer.Stop();
+                monitoring.Stop();
+
+                Task.WaitAll(taskRetriever, taskProcessor, taskDisplayer, taskMonitoring);
+
+                if (_socket != null)
                 {
+                    _logger.Information("Shutting down TCP socket {0}:{1} ..", RemoteIP, RemotePort);
+                    _socket.Shutdown(SocketShutdown.Both);
+                    _logger.Information("Socket shut down");
+
                     _logger.Information("Closing TCP socket {0}:{1} ..", RemoteIP, RemotePort);
                     _socket.Close();
                     _logger.Information("Socket closed");
@@ -105,6 +150,13 @@ namespace CA_Main
                 stopwatch.Stop();
                 _logger.Information(string.Format("Main Action Completed in {0}", Utils.ElapsedTime(stopwatch.Elapsed)));
             }
+        }
+
+        private void Console_CancelKeyPress(object sender, ConsoleCancelEventArgs e)
+        {
+            e.Cancel = true;
+            _keepRunning = false;
+            _logger.Information(string.Format("Cancelling Main Action Execution ..."));
         }
     }
 }
