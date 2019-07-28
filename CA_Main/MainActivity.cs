@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DLL_Core;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
@@ -37,6 +38,9 @@ namespace CA_Main
         private DisplayingActivity _displayer = null;
         private MonitoringActivity _monitoring = null;
 
+        private Stack<byte[]> _inputStack;
+        private Stack<byte[]> _outputStack;
+
         public MainActivity()
         {
             RemoteIP = "127.0.0.1";
@@ -57,20 +61,24 @@ namespace CA_Main
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
 
+            // Initialize the Queues
+            _inputStack = new Stack<byte[]>();
+            _outputStack = new Stack<byte[]>();
+
             Task taskRetriever = new Task(() => {
-                _retriever = new RetrievingActivity(null, 1);
+                _retriever = new RetrievingActivity(_inputStack, sleepingTime: 1);
                 _retriever.Run();
             });
             Task taskProcessor = new Task(() => {
-                _processor = new ProcessingActivity(null, null, 1);
+                _processor = new ProcessingActivity(_inputStack, _outputStack, sleepingTime: 1);
                 _processor.Run();
             });
             Task taskDisplayer = new Task(() => {
-                _displayer = new DisplayingActivity(null, 1);
+                _displayer = new DisplayingActivity(_inputStack, sleepingTime: 1);
                 _displayer.Run();
             });
             Task taskMonitoring = new Task(() => {
-                _monitoring = new MonitoringActivity(null, null, 1);
+                _monitoring = new MonitoringActivity(_inputStack, _outputStack, sleepingTime: 1);
                 _monitoring.Run();
             });
 
@@ -178,7 +186,7 @@ namespace CA_Main
             _processor?.Stop();
             _displayer?.Stop();
             _monitoring?.Stop();
-            this.Stop();
+            Stop();
             _logger.Information(string.Format("Cancelling Main Action Execution ..."));
         }
     }

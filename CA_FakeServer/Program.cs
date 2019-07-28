@@ -1,14 +1,12 @@
 ﻿using DLL_Core;
 using System;
 using System.Diagnostics;
-using System.Threading;
-using System.Threading.Tasks;
 
-namespace CA_Main
+namespace CA_FakeServer
 {
     class Program
     {
-        public static readonly string AppName = "MinicapReceiver.Core.Main";
+        public static readonly string AppName = "MinicapReceiver.Core.FakeServer";
         private static Serilog.Core.Logger _logger = Logger.GetInstance();
 
         static void Main(string[] args)
@@ -23,7 +21,7 @@ namespace CA_Main
                 MainActivity main = new MainActivity();
                 main.Run();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.Fatal(ex, string.Format("An Error Occurred! Message: {0}", ex.Message));
             }

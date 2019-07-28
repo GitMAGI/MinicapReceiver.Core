@@ -11,7 +11,7 @@ using Serilog.Configuration;
 using System.Diagnostics;
 using System.Reflection;
 
-namespace CA_Main
+namespace DLL_Core
 {
     public class Logger
     {
@@ -25,7 +25,6 @@ namespace CA_Main
                 .Enrich.FromLogContext()
                 .Enrich.WithMachineName()
                 .Enrich.WithThreadId()
-                //.Enrich.WithScope()
                 .WriteTo.Console(outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.ffffff} | {Level:u} | {MachineName} | {ThreadId} | {Scope} >>> {Message}{NewLine}{Exception}", theme: AnsiConsoleTheme.Code)
                 .CreateLogger();
         }

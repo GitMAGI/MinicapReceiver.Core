@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace CA_Main
+namespace DLL_Core
 {
     public static class Utils
     {

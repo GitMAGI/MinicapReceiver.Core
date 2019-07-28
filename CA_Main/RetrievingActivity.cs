@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DLL_Core;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
@@ -6,47 +7,17 @@ using System.Threading;
 
 namespace CA_Main
 {
-    public class RetrievingActivity
+    public class RetrievingActivity : BaseActivity
     {
-        private Serilog.Core.Logger _logger = Logger.GetInstance();
-        private bool _keepRunning = false;
-        public object InputQueue;
-        public int WorkerLoopTimeSleeping { get; private set; }
+        private Stack<byte[]> _inputStack;
 
-        public RetrievingActivity(object inputQueue, int sleepingTime = 1)
+        public RetrievingActivity(Stack<byte[]> inputStack, string activityName = "Retrieving", int sleepingTime = 1) : base(activityName, sleepingTime)
         {
-            InputQueue = inputQueue;
-            WorkerLoopTimeSleeping = sleepingTime;
+            _inputStack = inputStack;
         }
 
-        public void Run()
+        override protected void _runner()
         {
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
-            try
-            {
-                _logger.Information(string.Format("Retrieving Action Starting  ..."));
-                _keepRunning = true;
-                while (_keepRunning)
-                {
-
-                    Thread.Sleep(WorkerLoopTimeSleeping);
-                }
-            }
-            catch (Exception)
-            {
-                throw;
-            }
-            finally
-            {
-                stopwatch.Stop();
-                _logger.Information(string.Format("Retrieving Action Completed in {0}", Utils.ElapsedTime(stopwatch.Elapsed)));
-            }
-        }
-
-        public void Stop()
-        {
-            this._keepRunning = false;
         }
     }
 }
