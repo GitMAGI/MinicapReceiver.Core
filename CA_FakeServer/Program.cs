@@ -18,7 +18,7 @@ namespace CA_FakeServer
             {
                 _logger.Information(string.Format("Starting Application {0} ...", AppName));
 
-                MainActivity main = new MainActivity();
+                MainActivityAsync main = new MainActivityAsync();
                 main.Run();
             }
             catch (Exception ex)
