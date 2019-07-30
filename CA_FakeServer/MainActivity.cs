@@ -6,6 +6,8 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using System.Linq;
+using System.IO;
 
 namespace CA_FakeServer
 {
@@ -206,12 +208,12 @@ namespace CA_FakeServer
             string programPath = System.IO.Path.Combine(System.IO.Path.GetPathRoot(Environment.SystemDirectory), "ffmpeg", "bin");
             string programName = "ffmpeg.exe";
 
-            uint w = 1080;
-            uint h = 1920;
+            uint w = 108;
+            uint h = 192;
 
             List<byte[]> images = new List<byte[]>();
 
-            Process proc = new Process
+            Process process = new Process
             {
                 StartInfo = new ProcessStartInfo
                 {
@@ -219,32 +221,53 @@ namespace CA_FakeServer
                     Arguments = string.Join(" ", new List<string>() { "-i", input_fullfilename, "-c:v", "mjpeg", "-f", "image2pipe", "-s", string.Format("{0}x{1}", h, w), "pipe:1" }),
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
-                    CreateNoWindow = true
+                    CreateNoWindow = true,
+                    StandardOutputEncoding = Encoding.UTF8
                 }
             };
+            process.Start();
+            byte[] data_byte = new byte[]{ };
+            BinaryReader br = new BinaryReader(process.StandardOutput.BaseStream);
+            process.WaitForExit();
+            process.Close();
+            int len = 0;
 
-            proc.Start();
-            string data = "";
-            while (!proc.StandardOutput.EndOfStream)
-                data += proc.StandardOutput.ReadLine();
+            while (!process.StandardOutput.EndOfStream)
+            {
+                byte[] bytes_line = { };
+                len += br.Read(bytes_line);
+            }                
+            process.WaitForExit();
+            process.Close();
 
-            /* Tradurre questa parte in python
-            # Gather an array of JPGs
-            # A JPG is delimited by 2 Sequences:
-            #  SOI (Start of Image) 0xFF 0xD8
-            #  EOI (End of Image)   0xFF 0xD9
-            frames = []
-            soi_pattern = br'\xFF\xD8'
-            regex = re.compile(soi_pattern)
-            start_indexes = [m.start(0) for m in re.finditer(soi_pattern, input_data)]
+            if (data_byte == null || data_byte.Length == 0)
+                return images;            
 
-            #print(start_indexes)
-            #print(len(start_indexes))
+            //data_byte = new byte[] { 0x00, 0x00, 0x23, 0x45, 0x67, 0xFF, 0xD8, 0x00, 0x00, 0x23, 0x45, 0x67, 0x00, 0x00, 0x23, 0x45, 0x67, 0x00, 0x00, 0x23, 0x45, 0x67, 0xFF, 0xD9, 0x00, 0x00, 0x23, 0x45, 0x67, 0xFF, 0xD8, 0x00, 0x00, 0x23, 0x45, 0x67, 0x00, 0x00, 0x23, 0x45, 0x67, 0x00, 0x00, 0x23, 0x45, 0x67, 0xFF, 0xD9, 0x00, 0x00, 0x23, 0x45, 0x67, 0xFF, 0xD8, 0x00, 0x00, 0x23, 0x45, 0x67, 0x00, 0x00, 0x23, 0x45, 0x67, 0x00, 0x00, 0x23, 0x45, 0x67, 0xFF, 0xD9, 0x00, 0x00, 0x23, 0x45, 0x67, 0xFF, 0xD8, 0x00, 0x00, 0x23, 0x45, 0x67, 0x00, 0x00, 0x23, 0x45, 0x67, 0x00, 0x00, 0x23, 0x45, 0x67, 0xFF, 0xD9, 0x00, 0x00, 0x23, 0x45, 0x67, 0xFF, 0xD8, 0x00, 0x00, 0x23, 0x45, 0x67, 0x00, 0x00, 0x23, 0x45, 0x67, 0x00, 0x00, 0x23, 0x45, 0x67, 0xFF, 0xD9, 0x00, 0x00, 0x23, 0x45, 0x67, 0xFF, 0xD8, 0x00, 0x00, 0x23, 0x45, 0x67, 0x00, 0x00, 0x23, 0x45, 0x67, 0x00, 0x00, 0x23, 0x45, 0x67, 0xFF, 0xD9, 0x00, 0x00, 0x23, 0x45, 0x67, 0xFF, 0xD8, 0x00, 0x00, 0x23, 0x45, 0x67, 0x00, 0x00, 0x23, 0x45, 0x67, 0x00, 0x00, 0x23, 0x45, 0x67, 0xFF, 0xD9, 0x00, 0x00, 0x23, 0x45, 0x67, 0xFF, 0xD8, 0x00, 0x00, 0x23, 0x45, 0x67, 0x00, 0x00, 0x23, 0x45, 0x67, 0x00, 0x00, 0x23, 0x45, 0x67, 0xFF, 0xD9, 0x00, 0x00, 0x23, 0x45, 0x67, 0xFF, 0xD8, 0x00, 0x00, 0x23, 0x45, 0x67, 0x00, 0x00, 0x23, 0x45, 0x67, 0x00, 0x00, 0x23, 0x45, 0x67, 0xFF, 0xD9 };
 
-            eoi_pattern = br'\xFF\xD9'
-            regex = re.compile(eoi_pattern)
-            end_indexes = [m.end(0) for m in re.finditer(eoi_pattern, input_data)] 
-            */
+            // Gather an array of JPGs
+            // A JPG is delimited by 2 Sequences:
+            // SOI (Start of Image) 0xFF 0xD8
+            // EOI (End of Image)   0xFF 0xD9
+
+            byte[] soi_pattern = { 0xFF, 0xD8 };
+            int[] start_indexes = (from index in Enumerable.Range(0, data_byte.Length - soi_pattern.Length + 1)
+                                   where data_byte.Skip(index).Take(soi_pattern.Length).SequenceEqual(soi_pattern)
+                                   select (int)index).ToArray();
+
+            byte[] eoi_pattern = { 0xFF, 0xD9 };
+            int[] end_indexes = (from index in Enumerable.Range(0, data_byte.Length - eoi_pattern.Length + 1)
+                                 where data_byte.Skip(index).Take(eoi_pattern.Length).SequenceEqual(eoi_pattern)
+                                 select (int)index).ToArray();
+
+            for (int i = 0; i < start_indexes.Count(); i++)
+            {
+                int start_index = start_indexes[i];
+                int end_index = end_indexes[i];
+
+                byte[] image = data_byte.Skip(start_index).Take(end_index - start_index).ToArray();
+                images.Add(image);
+            }
 
             return images;
         }
