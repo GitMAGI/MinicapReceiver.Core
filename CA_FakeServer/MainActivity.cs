@@ -88,6 +88,7 @@ namespace CA_FakeServer
                 _header[23] = (byte) 2;
 
                 // Acquiring data to transmit
+                _packets = ImageExtraction();
                 // TO DO
 
                 IPAddress localAddr = IPAddress.Parse(LocalIP);
@@ -188,6 +189,64 @@ namespace CA_FakeServer
             e.Cancel = true;
             Stop();
             _logger.Information(string.Format("Cancelling Main Action Execution ..."));
+        }
+
+        public void Test()
+        {
+            ImageExtraction();
+        }
+
+        private List<byte[]> ImageExtraction()
+        {
+            string startupPath = System.IO.Directory.GetParent(Environment.CurrentDirectory).Parent.Parent.Parent.FullName;
+            string inputPath = "Input";
+            string inputFile = "video.mp4";
+            string input_fullfilename = System.IO.Path.Combine(startupPath, inputPath, inputFile);
+
+            string programPath = System.IO.Path.Combine(System.IO.Path.GetPathRoot(Environment.SystemDirectory), "ffmpeg", "bin");
+            string programName = "ffmpeg.exe";
+
+            uint w = 1080;
+            uint h = 1920;
+
+            List<byte[]> images = new List<byte[]>();
+
+            Process proc = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = System.IO.Path.Combine(programPath, programName),
+                    Arguments = string.Join(" ", new List<string>() { "-i", input_fullfilename, "-c:v", "mjpeg", "-f", "image2pipe", "-s", string.Format("{0}x{1}", h, w), "pipe:1" }),
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    CreateNoWindow = true
+                }
+            };
+
+            proc.Start();
+            string data = "";
+            while (!proc.StandardOutput.EndOfStream)
+                data += proc.StandardOutput.ReadLine();
+
+            /* Tradurre questa parte in python
+            # Gather an array of JPGs
+            # A JPG is delimited by 2 Sequences:
+            #  SOI (Start of Image) 0xFF 0xD8
+            #  EOI (End of Image)   0xFF 0xD9
+            frames = []
+            soi_pattern = br'\xFF\xD8'
+            regex = re.compile(soi_pattern)
+            start_indexes = [m.start(0) for m in re.finditer(soi_pattern, input_data)]
+
+            #print(start_indexes)
+            #print(len(start_indexes))
+
+            eoi_pattern = br'\xFF\xD9'
+            regex = re.compile(eoi_pattern)
+            end_indexes = [m.end(0) for m in re.finditer(eoi_pattern, input_data)] 
+            */
+
+            return images;
         }
     }
 }
