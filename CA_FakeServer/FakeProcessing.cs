@@ -53,26 +53,15 @@ namespace CA_FakeServer
             return header;
         }
 
-        internal static List<byte[]> ImageExtraction()
+        internal static List<byte[]> ImageExtraction(string program_fullfileame, string input_fullfilename, uint w = 270, uint h = 480)
         {
-            string startupPath = Directory.GetParent(Environment.CurrentDirectory).Parent.Parent.Parent.Parent.FullName;
-            string inputPath = "Input";
-            string inputFile = "video.mp4";
-            string input_fullfilename = Path.Combine(startupPath, inputPath, inputFile);
-
-            string programPath = Path.Combine(Path.GetPathRoot(Environment.SystemDirectory), "ffmpeg", "bin");
-            string programName = "ffmpeg.exe";
-
-            uint w = 270;
-            uint h = 480;
-
             List<byte[]> images = new List<byte[]>();
 
             Process process = new Process
             {
                 StartInfo = new ProcessStartInfo
                 {
-                    FileName = Path.Combine(programPath, programName),
+                    FileName = program_fullfileame,
                     Arguments = string.Join(" ", new List<string>() { "-i", input_fullfilename, "-c:v", "mjpeg", "-f", "image2pipe", "-s", string.Format("{0}x{1}", h, w), "pipe:1" }),
                     UseShellExecute = false,
                     RedirectStandardOutput = true,

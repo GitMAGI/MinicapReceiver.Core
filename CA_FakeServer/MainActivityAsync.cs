@@ -36,7 +36,12 @@ namespace CA_FakeServer
             // Building up the main header to transmit
             _header = FakeProcessing.HeaderMaker();
             // Acquiring data to transmit
-            _packets = FakeProcessing.ImageExtraction();
+            string startupPath = System.IO.Directory.GetParent(Environment.CurrentDirectory).Parent.Parent.Parent.Parent.FullName;
+            string input_fullfilename = System.IO.Path.Combine(startupPath, "Input", "video.mp4");
+            string program_fullfileame = System.IO.Path.Combine(System.IO.Path.GetPathRoot(Environment.SystemDirectory), "ffmpeg", "bin", "ffmpeg.exe");
+            uint w = 270;
+            uint h = 480;
+            _packets = FakeProcessing.ImageExtraction(program_fullfileame, input_fullfilename, w, h);
         }
 
         public void Stop()
