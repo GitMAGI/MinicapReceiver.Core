@@ -29,7 +29,7 @@ namespace CA_Main
 
         public byte DisplayOrientation { get; private set; }
 
-        private bool _keepRunning;
+        private volatile bool _keepRunning;
         
         public int MainLoopTimeSleeping { get; private set; }
 

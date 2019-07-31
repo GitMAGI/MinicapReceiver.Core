@@ -15,10 +15,14 @@ namespace CA_FakeServer
 
         public int LocalPort { get; private set; }
         public string LocalIP { get; private set; }
-        private Socket _listener;
-        private bool _keepRunning;
-        private bool _keepTransmitting;
+        private volatile bool _keepRunning;
+        private volatile bool _keepTransmitting;
+
+        public ManualResetEvent allDone = new ManualResetEvent(false);
+
+        public int MaximumConnections { get; private set; }
         public int MainLoopTimeSleeping { get; private set; }
+
         private byte[] _header = new byte[24];
         private List<byte[]> _packets = new List<byte[]>();
 
@@ -27,100 +31,70 @@ namespace CA_FakeServer
             LocalPort = 1717;
             LocalIP = "127.0.0.1";
             MainLoopTimeSleeping = 1;
+            MaximumConnections = 1;
+
+            // Building up the main header to transmit
+            _header = FakeProcessing.HeaderMaker();
+            // Acquiring data to transmit
+            _packets = FakeProcessing.ImageExtraction();
         }
 
         public void Stop()
         {
+            allDone.Set();
             _keepTransmitting = false;
             _keepRunning = false;
         }
 
-        public void Run()
+        private void Send(Socket handler, byte[] header, List<byte[]> images)
         {
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
+            IPEndPoint remoteIpEndPoint = handler.RemoteEndPoint as IPEndPoint;
+            string remoteIP = remoteIpEndPoint.Address.ToString();
+            int remotePort = remoteIpEndPoint.Port;
 
-            try
+            _logger.Information("Trasmission on socket {0}:{1} starting ...", remoteIP, remotePort);
+
+            try { handler.Send(header); } catch (Exception) { throw; }
+            _logger.Information("Header sent on socket {0}:{1}", remoteIP, remotePort);
+
+            _keepTransmitting = true;
+            Console.CancelKeyPress += new ConsoleCancelEventHandler(Console_CancelKeyPress);
+            while (_keepTransmitting)
             {
-                _logger.Information(string.Format("Main Action Starting  ..."));
-
-                IPAddress localAddr = IPAddress.Parse(LocalIP);
-                IPEndPoint localEndPoint = new IPEndPoint(localAddr, LocalPort);
-                _listener = new Socket(localAddr.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                _logger.Information("Socket {0}:{1} initialized", LocalIP, LocalPort);
-                _listener.Bind(localEndPoint);
-                _logger.Information("Socket {0}:{1} bounded", LocalIP, LocalPort);
-                _listener.Listen(1);
-
-                // Building up the main header to transmit
-                _header[0] = (byte)1;
-                _header[1] = (byte)24;
-                byte[] pid = BitConverter.GetBytes(15324);
-                byte[] rH = BitConverter.GetBytes(1920);
-                byte[] rW = BitConverter.GetBytes(1080);
-                byte[] vH = BitConverter.GetBytes(480);
-                byte[] vW = BitConverter.GetBytes(270);
-                _header[2] = pid[0];
-                _header[3] = pid[1];
-                _header[4] = pid[2];
-                _header[5] = pid[3];
-                _header[6] = rH[0];
-                _header[7] = rH[1];
-                _header[8] = rH[2];
-                _header[9] = rH[3];
-                _header[10] = rW[0];
-                _header[11] = rW[1];
-                _header[12] = rW[2];
-                _header[13] = rW[3];
-                _header[14] = vH[0];
-                _header[15] = vH[1];
-                _header[16] = vH[2];
-                _header[17] = vH[3];
-                _header[18] = vW[0];
-                _header[19] = vW[1];
-                _header[20] = vW[2];
-                _header[21] = vW[3];
-                _header[22] = (byte)1;
-                _header[23] = (byte)2;
-
-                //Loop Main Activity until Stop is set
-                _keepRunning = true;
-                Console.CancelKeyPress += new ConsoleCancelEventHandler(Console_CancelKeyPress);
-                while (_keepRunning)
+                if (images == null || images.Count == 0)
                 {
-                    _logger.Information("Socket {0}:{1} is listening for connections", LocalIP, LocalPort);
-                    AsyncCallback aCallback = new AsyncCallback(AcceptCallback);
-                    _listener.BeginAccept(aCallback, _listener);
+                    _logger.Information("No data to Transmit on socket {0}:{1} ...", remoteIP, remotePort);
+                    break;
+                }
 
+                //_logger.Debug("Data in continous trasmission on socket {0}:{1}", remoteIP, remotePort);
+                foreach (byte[] image in images)
+                {
+                    try { handler.Send(header); } catch (Exception) {
+                        _keepTransmitting = false;
+                        break;
+                    }
                     Thread.Sleep(MainLoopTimeSleeping);
                 }
-                
+                Thread.Sleep(MainLoopTimeSleeping);
             }
-            catch (Exception) { throw; }
-            finally
-            {
-                if (_listener != null)
-                {
-                    try
-                    {
-                        _logger.Information("Shutting down TCP socket {0}:{1} ..", LocalIP, LocalPort);
-                        _listener.Shutdown(SocketShutdown.Both);
-                        _logger.Information("Socket shut down");
-                    }
-                    catch (Exception) { }
 
-                    _logger.Information("Closing TCP socket {0}:{1} ..", LocalIP, LocalPort);
-                    _listener.Close();
-                    _logger.Information("Socket closed");
-                }
+            _logger.Information("Trasmission on socket {0}:{1} terminated", remoteIP, remotePort);
+            _logger.Information("Shutting down TCP socket {0}:{1} ..", remoteIP, remotePort);
+            handler.Shutdown(SocketShutdown.Both);
+            _logger.Information("Socket shut down");
+            _logger.Information("Closing TCP socket {0}:{1} ..", remoteIP, remotePort);
+            handler.Close();
+            _logger.Information("Socket closed");
 
-                stopwatch.Stop();
-                _logger.Information(string.Format("Main Action Completed in {0}", Utils.ElapsedTime(stopwatch.Elapsed)));
-            }
+            _logger.Information("Socket {0}:{1} is listening for connections (MAX: {2})", LocalIP, LocalPort, MaximumConnections);
         }
 
-        private void AcceptCallback(IAsyncResult ar)
+        private void BeginAcceptCallback(IAsyncResult ar)
         {
+            // Signal the main thread to continue.  
+            allDone.Set();
+
             Socket listener = (Socket)ar.AsyncState;
             Socket handler = listener.EndAccept(ar);
 
@@ -129,46 +103,56 @@ namespace CA_FakeServer
             int remotePort = remoteIpEndPoint.Port;
 
             _logger.Information("A connection on socket {0}:{1} has been established", remoteIP, remotePort);
-            _keepTransmitting = true;
 
-            _logger.Information("Starting trasmission on socket {0}:{1} ...", remoteIP, remotePort);
-            // Transmit just the header
-            handler.Send(_header);
-            _logger.Information("Header sent on socket {0}:{1}", remoteIP, remotePort);
-            while (_keepTransmitting)
-            {
-                //Transmit all packets
-                _logger.Debug("Data in continous trasmission on socket {0}:{1}", remoteIP, remotePort);
-                if (_packets == null || _packets.Count < 1)
-                    break;
-
-                foreach (byte[] packet in _packets)
-                {
-                    int len = handler.Send(packet);
-                    Thread.Sleep(MainLoopTimeSleeping);
-                }
-            }
-
-            _keepTransmitting = false;
-            _logger.Information("Trasmission on socket {0}:{1} terminated", remoteIP, remotePort);
-
-            if (handler != null)
-            {
-                _logger.Information("Shutting down TCP socket {0}:{1} ..", remoteIP, remotePort);
-                handler.Shutdown(SocketShutdown.Send);
-                _logger.Information("Socket shut down");
-
-                _logger.Information("Closing TCP socket {0}:{1} ..", remoteIP, remotePort);
-                handler.Close();
-                _logger.Information("Socket closed");
-            }
+            Send(handler, _header, _packets);
         }
-
+                
         private void Console_CancelKeyPress(object sender, ConsoleCancelEventArgs e)
         {
             e.Cancel = true;
             Stop();
             _logger.Information(string.Format("Cancelling Main Action Execution ..."));
+        }
+        
+        public void Run()
+        {
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+
+            _logger.Information(string.Format("Main Action Starting  ..."));
+
+            IPAddress localAddr = IPAddress.Parse(LocalIP);
+            IPEndPoint localEndPoint = new IPEndPoint(localAddr, LocalPort);
+            Socket listener = new Socket(localAddr.AddressFamily, SocketType.Stream, ProtocolType.Tcp);            
+
+            try
+            {
+                _logger.Information("Socket {0}:{1} initialized", LocalIP, LocalPort);
+                listener.Bind(localEndPoint);
+                _logger.Information("Socket {0}:{1} bounded", LocalIP, LocalPort);
+                listener.Listen(MaximumConnections);
+                _logger.Information("Socket {0}:{1} is listening for connections (MAX: {2})", LocalIP, LocalPort, MaximumConnections);
+
+                _keepRunning = true;
+                Console.CancelKeyPress += new ConsoleCancelEventHandler(Console_CancelKeyPress);
+                while (_keepRunning)
+                {
+                    // Set the event to nonsignaled state.
+                    allDone.Reset();
+                                        
+                    listener.BeginAccept(new AsyncCallback(BeginAcceptCallback), listener);                    
+                    // Wait until a connection is made before continuing.
+                    allDone.WaitOne();
+
+                    //_logger.Information("Socket {0}:{1} is listening for connections (MAX: {2})", LocalIP, LocalPort, MaximumConnections);
+                }
+            }
+            catch (Exception) { throw; }
+            finally
+            {
+                stopwatch.Stop();
+                _logger.Information(string.Format("Main Action Completed in {0}", Utils.ElapsedTime(stopwatch.Elapsed)));
+            }
         }
     }
 }
