@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+	<PackageReference Include="OpenCvSharp4" Version="4.1.0.20190416" />
 	<PackageReference Include="Serilog" Version="2.8.0" />
     <ProjectReference Include="..\DLL_Core\DLL_Core.csproj" />
   </ItemGroup>

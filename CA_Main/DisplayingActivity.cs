@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 using System.Threading;
+using OpenCvSharp;
 
 namespace CA_Main
 {
@@ -18,6 +19,13 @@ namespace CA_Main
 
         override protected void _runner()
         {
+            /*
+            Mat src = new Mat("lenna.png", ImreadModes.Grayscale);
+            using (new Window("src image", src))
+            {
+                Cv2.WaitKey();
+            }
+            */
         }
     }
 }
