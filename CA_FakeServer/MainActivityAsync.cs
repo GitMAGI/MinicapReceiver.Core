@@ -75,7 +75,17 @@ namespace CA_FakeServer
                 //_logger.Debug("Data in continous trasmission on socket {0}:{1}", remoteIP, remotePort);
                 foreach (byte[] image in images)
                 {
-                    try { handler.Send(header); } catch (Exception) {
+                    // Sending Packet Size
+                    try { handler.Send(BitConverter.GetBytes(image.Length)); }
+                    catch (Exception)
+                    {
+                        _keepTransmitting = false;
+                        break;
+                    }
+                    Thread.Sleep(MainLoopTimeSleeping);
+
+                    // Sending Data Packet
+                    try { handler.Send(image); } catch (Exception) {
                         _keepTransmitting = false;
                         break;
                     }

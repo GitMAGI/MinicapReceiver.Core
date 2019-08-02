@@ -33,8 +33,9 @@ namespace DLL_Core
                     Thread.Sleep(WorkerLoopTimeSleeping);
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.Error(ex, "An Error occurred in a Multithreading Context: {0}", ex.Message);
                 throw;
             }
             finally

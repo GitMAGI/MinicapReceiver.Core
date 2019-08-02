@@ -21,7 +21,7 @@ namespace DLL_Core
         
         private static void Initialize(){
             _instance = new LoggerConfiguration()
-                .MinimumLevel.Debug()
+                .MinimumLevel.Information()
                 .Enrich.FromLogContext()
                 .Enrich.WithMachineName()
                 .Enrich.WithThreadId()

@@ -33,13 +33,15 @@ namespace CA_Main
         
         public int MainLoopTimeSleeping { get; private set; }
 
+        public int LimitOutputStack { get; private set; }
+
         private RetrievingActivity _retriever = null;
         private ProcessingActivity _processor = null;
         private DisplayingActivity _displayer = null;
         private MonitoringActivity _monitoring = null;
 
-        private Stack<byte[]> _inputStack;
-        private Stack<byte[]> _outputStack;
+        private volatile Stack<byte[]> _inputStack;
+        private volatile Stack<byte[]> _outputStack;
 
         public MainActivity()
         {
@@ -49,6 +51,8 @@ namespace CA_Main
             ScalingFactor = 0.4;
 
             MainLoopTimeSleeping = 1;
+
+            LimitOutputStack = 2;
         }
 
         public void Stop()
@@ -66,11 +70,11 @@ namespace CA_Main
             _outputStack = new Stack<byte[]>();
 
             Task taskRetriever = new Task(() => {
-                _retriever = new RetrievingActivity(_inputStack, sleepingTime: 1);
+                _retriever = new RetrievingActivity(_socket, _inputStack, sleepingTime: 1);
                 _retriever.Run();
             });
             Task taskProcessor = new Task(() => {
-                _processor = new ProcessingActivity(_inputStack, _outputStack, sleepingTime: 1);
+                _processor = new ProcessingActivity(LimitOutputStack, _inputStack, _outputStack, sleepingTime: 1);
                 _processor.Run();
             });
             Task taskDisplayer = new Task(() => {
@@ -135,9 +139,10 @@ namespace CA_Main
                 while (_keepRunning)
                     Thread.Sleep(MainLoopTimeSleeping);                
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                _logger.Error(ex, "An Error occurred in a Multithreading Context: {0}", ex.Message);
+                //throw;
             }
             finally
             {
