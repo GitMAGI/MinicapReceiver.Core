@@ -35,10 +35,13 @@ namespace CA_Main
             _logger.Debug("Data popped successfully");
 
             Mat src = Mat.ImDecode(datum, ImreadModes.Color);
-            using (new Window("src image", src))
-            {
-                Cv2.WaitKey();
-            }            
+            Cv2.ImShow("Data", src);
+            Thread.Sleep(10);
+
+            //using (new Window("src image", src))
+            //{
+                
+            //}            
         }
     }
 }
