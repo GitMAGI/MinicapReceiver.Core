@@ -36,12 +36,14 @@ namespace CA_Main
 
             Mat src = Mat.ImDecode(datum, ImreadModes.Color);
             Cv2.ImShow("Data", src);
-            Thread.Sleep(10);
 
-            //using (new Window("src image", src))
-            //{
-                
-            //}            
+            int keyPressed = Cv2.WaitKey(2);
+
+            if(keyPressed == 27)
+            {
+                this.Stop();
+                Cv2.DestroyAllWindows();
+            }                
         }
     }
 }
