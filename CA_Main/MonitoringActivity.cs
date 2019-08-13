@@ -1,4 +1,5 @@
 ﻿using DLL_Core;
+using OpenCvSharp;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -10,9 +11,9 @@ namespace CA_Main
     public class MonitoringActivity : BaseActivity
     {
         private Stack<byte[]> _inputStack;
-        private Stack<byte[]> _outputStack;
+        private Stack<Mat> _outputStack;
 
-        public MonitoringActivity(Stack<byte[]> inputStack, Stack<byte[]> outputStack, string activityName = "Monitoring", int sleepingTime = 1) : base(activityName, sleepingTime)
+        public MonitoringActivity(Stack<byte[]> inputStack, Stack<Mat> outputStack, string activityName = "Monitoring", int sleepingTime = 1) : base(activityName, sleepingTime)
         {
             if (inputStack == null)
                 throw new ArgumentNullException(string.Format("Input {0} cannot be null! Initialize it before to instantiate a {1} object", inputStack.GetType().FullName, this.GetType().FullName));

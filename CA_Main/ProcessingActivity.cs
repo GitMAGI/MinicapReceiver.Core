@@ -1,4 +1,5 @@
 ﻿using DLL_Core;
+using OpenCvSharp;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -10,10 +11,10 @@ namespace CA_Main
     public class ProcessingActivity : BaseActivity
     {
         private Stack<byte[]> _inputStack;
-        private Stack<byte[]> _outputStack;
+        private Stack<Mat> _outputStack;
         private int _limit;
 
-        public ProcessingActivity(int limit, Stack<byte[]> inputStack, Stack<byte[]> outputStack, string activityName = "Processing", int sleepingTime = 1) : base(activityName, sleepingTime)
+        public ProcessingActivity(int limit, Stack<byte[]> inputStack, Stack<Mat> outputStack, string activityName = "Processing", int sleepingTime = 1) : base(activityName, sleepingTime)
         {
             if (inputStack == null)
                 throw new ArgumentNullException(string.Format("Input {0} cannot be null! Initialize it before to instantiate a {1} object", inputStack.GetType().FullName, this.GetType().FullName));
@@ -43,11 +44,15 @@ namespace CA_Main
             }
             _logger.Debug("Data popped successfully");
 
+            _logger.Debug("Decoding data just popped ...");
+            Mat src = Mat.ImDecode(data, ImreadModes.Grayscale);
+            _logger.Debug("Data decoded successfully");
+
             _logger.Debug("Pushing data into the Output Stack ...");
             if (_outputStack.Count > _limit)
                 _outputStack.Clear();
 
-            _outputStack.Push(data);
+            _outputStack.Push(src);
             _logger.Debug("Data pusched successfully");
         }
     }

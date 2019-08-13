@@ -1,4 +1,5 @@
 ﻿using DLL_Core;
+using OpenCvSharp;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -41,7 +42,7 @@ namespace CA_Main
         private MonitoringActivity _monitoring = null;
 
         private volatile Stack<byte[]> _inputStack;
-        private volatile Stack<byte[]> _outputStack;
+        private volatile Stack<Mat> _outputStack;
 
         public MainActivity()
         {
@@ -67,7 +68,7 @@ namespace CA_Main
 
             // Initialize the Queues
             _inputStack = new Stack<byte[]>();
-            _outputStack = new Stack<byte[]>();
+            _outputStack = new Stack<Mat>();
 
             Task taskRetriever = new Task(() => {
                 _retriever = new RetrievingActivity(_socket, _inputStack, sleepingTime: 1);
@@ -78,7 +79,7 @@ namespace CA_Main
                 _processor.Run();
             });
             Task taskDisplayer = new Task(() => {
-                _displayer = new DisplayingActivity(_inputStack, sleepingTime: 1);
+                _displayer = new DisplayingActivity(_outputStack, sleepingTime: 1);
                 _displayer.Run();
             });
             Task taskMonitoring = new Task(() => {
