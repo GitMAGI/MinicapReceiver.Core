@@ -25,6 +25,7 @@ namespace DLL_Core
             stopwatch.Start();
             try
             {
+                _initialize();
                 _logger.Information(string.Format("{0} Action Starting  ...", _activityName));
                 _keepRunning = true;
                 while (_keepRunning)
@@ -35,12 +36,14 @@ namespace DLL_Core
             }
             catch (Exception ex)
             {
-                _logger.Error(ex, "An Error occurred in a Multithreading Context: {0}", ex.Message);
+                _logger.Error(ex, "An Error occurred : {0}", ex.Message);
+                _error();
                 throw;
             }
             finally
             {
                 stopwatch.Stop();
+                _cleaning();
                 _logger.Information(string.Format("{0} Action Completed in {1}", _activityName, Utils.ElapsedTime(stopwatch.Elapsed)));
             }
         }
@@ -50,6 +53,12 @@ namespace DLL_Core
             _keepRunning = false;
         }
 
+        virtual protected void _initialize() { }
+
         virtual protected void _runner() { }
+
+        virtual protected void _error() { }
+
+        virtual protected void _cleaning() { }
     }
 }

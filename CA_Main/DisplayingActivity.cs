@@ -34,7 +34,7 @@ namespace CA_Main
             }
             _logger.Debug("Data popped successfully");
 
-            Mat src = Mat.ImDecode(datum, ImreadModes.Color);
+            Mat src = Mat.ImDecode(datum, ImreadModes.Grayscale);
             Cv2.ImShow("Data", src);
 
             int keyPressed = Cv2.WaitKey(2);

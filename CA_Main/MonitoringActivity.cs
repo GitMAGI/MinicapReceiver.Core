@@ -28,5 +28,20 @@ namespace CA_Main
         {
             Console.Write("\rInput Stack Count {0} - Output Stack Count {1}", _inputStack.Count, _outputStack.Count);
         }
+
+        protected override void _initialize()
+        {
+            //Console.Write("\n");
+        }
+
+        protected override void _error()
+        {
+            Console.Write("\n");
+        }
+
+        protected override void _cleaning()
+        {
+            Console.Write("\n");
+        }
     }
 }
