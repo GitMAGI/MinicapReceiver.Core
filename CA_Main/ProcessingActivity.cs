@@ -57,6 +57,10 @@ namespace CA_Main
             }
             _logger.Debug("Data decoded successfully");
 
+            #region Activity of CV and interaction with device (Using https://github.com/BobbleKeyboard/android_touch)
+
+            #endregion
+
             _logger.Debug("Pushing data into the Output Stack ...");
             if (_outputStack.Count > _limit)
                 _outputStack.Clear();
