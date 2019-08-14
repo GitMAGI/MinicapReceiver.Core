@@ -34,6 +34,12 @@ namespace CA_Main
             }
             _logger.Debug("Data popped successfully");
 
+            if(src == null)
+            {
+                _logger.Warning("Data popped from Output Stack is NULL. Frame not Displayable!");
+                return;
+            }
+
             Cv2.ImShow("Data", src);
 
             int keyPressed = Cv2.WaitKey(2);

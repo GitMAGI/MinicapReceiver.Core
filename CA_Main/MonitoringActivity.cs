@@ -13,6 +13,11 @@ namespace CA_Main
         private Stack<byte[]> _inputStack;
         private Stack<Mat> _outputStack;
 
+        private int _xCursor;
+        private int _yCursor;
+
+        private static readonly object _obj = new object();
+
         public MonitoringActivity(Stack<byte[]> inputStack, Stack<Mat> outputStack, string activityName = "Monitoring", int sleepingTime = 1) : base(activityName, sleepingTime)
         {
             if (inputStack == null)
@@ -27,22 +32,30 @@ namespace CA_Main
 
         override protected void _runner()
         {
-            Console.Write("\rInput Stack Count {0} - Output Stack Count {1}", _inputStack.Count, _outputStack.Count);
+            lock (_obj)
+            {
+                if (Console.CursorTop == this._yCursor)
+                    Console.CursorTop--;
+
+                string line = string.Format("Input Stack Count {0} - Output Stack Count {1}", _inputStack.Count, _outputStack.Count);
+                Console.WriteLine(line);
+                this._yCursor = Console.CursorTop;
+            }
         }
 
         protected override void _initialize()
         {
-            //Console.Write("\n");
+            this._yCursor = Console.CursorTop;
         }
 
         protected override void _error()
         {
-            Console.Write("\n");
+            Console.WriteLine("");
         }
 
         protected override void _cleaning()
         {
-            Console.Write("\n");
+            
         }
     }
 }

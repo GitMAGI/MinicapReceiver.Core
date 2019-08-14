@@ -42,10 +42,19 @@ namespace CA_Main
                 _logger.Debug("Data popping failed!");
                 return;
             }
+            if(data == null){
+                _logger.Warning("Data popped from Input Stake is NULL. Frame Skipped!");
+                return;
+            }
             _logger.Debug("Data popped successfully");
 
             _logger.Debug("Decoding data just popped ...");
             Mat src = Mat.ImDecode(data, ImreadModes.Grayscale);
+            if (src == null)
+            {
+                _logger.Warning("Data decoded is NULL. Frame Skipped!");
+                return;
+            }
             _logger.Debug("Data decoded successfully");
 
             _logger.Debug("Pushing data into the Output Stack ...");
